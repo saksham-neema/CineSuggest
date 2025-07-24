@@ -1,0 +1,40 @@
+/* src/components/Footer/Footer.css */
+.footer-container {
+  background-color: #1a1a1a;
+  color: #ccc;
+  padding: 2rem 1rem;
+  text-align: center;
+  margin-top: 3rem; /* Add space above the footer */
+  border-top: 3px solid #ff4500; /* Same accent as the header */
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem; /* Space between the links */
+  margin-bottom: 1.5rem;
+}
+
+.social-link {
+  color: #ccc;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Space between icon and text */
+  font-size: 1rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.social-link:hover {
+  color: white; /* Brighten on hover */
+}
+
+.social-icon {
+  font-size: 1.5rem; /* Make the icon slightly larger than the text */
+}
+
+.creator-credit {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}

@@ -1,0 +1,52 @@
+/* src/components/Controls.css */
+.controls-container {
+  display: flex;
+  flex-wrap: wrap; /* Allows items to wrap onto the next line on small screens */
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem; /* Space between control groups */
+  padding: 1.5rem 1rem;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  margin: 2rem; /* Margin to separate it from the header and results */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column; /* Stack label on top of the select box */
+  gap: 0.5rem;
+}
+
+.control-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.control-group select {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background-color: #333;
+  color: white;
+  min-width: 180px; /* Give the select boxes a consistent width */
+}
+
+.search-button {
+  padding: 0.7rem 2rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #ff4500; /* Same orange-red accent as the header */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  align-self: flex-end; /* Align with the bottom of the select boxes */
+}
+
+.search-button:hover {
+  background-color: #e03d00;
+}

@@ -1,0 +1,46 @@
+/* src/components/MovieCard.css */
+.movie-card {
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  overflow: hidden; /* Ensures the image corners are rounded */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  color: white;
+  text-decoration: none;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-card:hover {
+  transform: scale(1.05); /* Slightly enlarge on hover */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.card-poster {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card-info {
+  padding: 1rem;
+  flex-grow: 1; /* Allows info to fill available space */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Pushes rating to the bottom */
+}
+
+.card-title {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.card-rating {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #f5c518; /* IMDb-style gold for rating */
+  align-self: flex-start; /* Align rating to the left */
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}

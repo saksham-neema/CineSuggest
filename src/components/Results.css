@@ -1,0 +1,10 @@
+/* src/components/Results.css */
+.results-grid {
+  display: grid;
+  /* Create as many 220px columns as can fit, with a 1.5rem gap */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto; /* Center the grid container */
+}
