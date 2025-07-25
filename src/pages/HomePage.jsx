@@ -57,7 +57,8 @@ function HomePage() {
     // --- THIS IS THE CORRECT URL FOR PRODUCTION ---
     // It calls the TMDb API directly from the user's browser.
     // The Vite proxy is no longer used.
-    const url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
+    // In HomePage.jsx inside handleSuggestClick
+const url = `/api/proxy?with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
     
     console.log("Fetching production-ready URL:", url);
 
