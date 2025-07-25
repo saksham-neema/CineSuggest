@@ -1,9 +1,10 @@
 // src/pages/HomePage.jsx
-import { useState, useEffect } from 'react'; // Import useEffect
+import { useState, useEffect } from 'react';
 import Header from '../components/Header.jsx';
 import Controls from '../components/Controls.jsx';
 import Results from '../components/Results.jsx';
 
+// This will read the Environment Variable you set in the Vercel dashboard during the build process.
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Define our genre lists in one place for easy management
@@ -26,13 +27,13 @@ const genreLists = {
   ],
 };
 
-// Define which languages get the full list
+// Define which languages get the full list of genres
 const fullGenreLanguages = ['en', 'hi', 'ko'];
 
 function HomePage() {
   const [language, setLanguage] = useState('en');
   const [mediaType, setMediaType] = useState('movie');
-  const [genre, setGenre] = useState('28'); // Default to Action
+  const [genre, setGenre] = useState('28');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,36 +42,36 @@ function HomePage() {
     ? genreLists.full
     : genreLists.limited;
 
-  // This special hook runs whenever the 'language' changes
+  // This hook ensures the genre is valid when the language (and thus the genre list) changes
   useEffect(() => {
-    // Check if the currently selected genre is valid in the new list of available genres
     const isGenreValid = availableGenres.some(g => g.value === genre);
-    // If it's NOT valid (e.g., user chose 'War' then switched to French), reset to the first available genre
     if (!isGenreValid) {
       setGenre(availableGenres[0].value);
     }
-  }, [language, availableGenres]); // Dependency array: re-run this logic if language changes
+  }, [language, availableGenres, genre]);
 
   const handleSuggestClick = async () => {
     setIsLoading(true);
     setResults([]);
     
-    // The URL now ALWAYS includes a genre, because every language has at least a limited list
-    const url = `/api/discover/${mediaType}?api_key=${API_KEY}&with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
+    // --- THIS IS THE CORRECT URL FOR PRODUCTION ---
+    // It calls the TMDb API directly from the user's browser.
+    // The Vite proxy is no longer used.
+    const url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
     
-    console.log("Fetching with dynamic genre URL:", url);
+    console.log("Fetching production-ready URL:", url);
 
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`API request via proxy failed with status ${response.status}`);
+        throw new Error(`API request failed with status ${response.status}`);
       }
       const data = await response.json();
       const validResults = data.results.filter(item => item.poster_path);
       setResults(validResults);
     } catch (error) {
-      console.error("Failed to fetch data via proxy:", error);
-      alert("Failed to fetch suggestions. Check the console for details.");
+      console.error("Failed to fetch data on production:", error);
+      alert("Failed to fetch suggestions. Please check your console for details.");
     }
 
     setIsLoading(false);
@@ -86,7 +87,7 @@ function HomePage() {
         setGenre={setGenre}
         language={language}
         setLanguage={setLanguage}
-        availableGenres={availableGenres} // Pass the correct list down
+        availableGenres={availableGenres}
         onSuggestClick={handleSuggestClick}
       />
       
