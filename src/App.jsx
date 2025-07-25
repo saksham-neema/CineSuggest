@@ -1,16 +1,21 @@
 // src/App.jsx
+import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage.jsx';
-import Footer from './components/Footer/Footer.jsx'; // Import the new Footer
+import DetailPage from './pages/DetailPage.jsx'; // We will create this next
+import Footer from './components/Footer/Footer.jsx';
 import './App.css';
 
 function App() {
   return (
-    // Using a React Fragment <>...</> allows us to have multiple top-level elements
     <>
       <main>
-        <HomePage />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          {/* A dynamic route for details. :mediaType will be 'movie' or 'tv' */}
+          <Route path="/:mediaType/:itemId" element={<DetailPage />} />
+        </Routes>
       </main>
-      <Footer /> {/* Add the Footer component here */}
+      <Footer />
     </>
   );
 }

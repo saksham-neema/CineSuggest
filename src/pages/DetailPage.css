@@ -1,0 +1,52 @@
+/* src/pages/DetailPage.css */
+.detail-page {
+  position: relative;
+  color: white;
+  min-height: 100vh;
+}
+
+.backdrop-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  z-index: -1;
+}
+
+/* Add a dark overlay so the text is always readable */
+.backdrop-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.detail-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.detail-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.detail-tagline {
+  font-size: 1.2rem;
+  font-style: italic;
+  color: #ccc;
+  margin-bottom: 2rem;
+}
+
+.detail-overview {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}

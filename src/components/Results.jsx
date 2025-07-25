@@ -2,11 +2,13 @@
 import MovieCard from './MovieCard.jsx';
 import './Results.css';
 
-function Results({ items }) {
+// Accept mediaType as a prop
+function Results({ items, mediaType }) {
   return (
     <div className="results-grid">
       {items.map(item => (
-        <MovieCard key={item.id} item={item} />
+        // Pass it down to each MovieCard
+        <MovieCard key={item.id} item={item} mediaType={mediaType} />
       ))}
     </div>
   );

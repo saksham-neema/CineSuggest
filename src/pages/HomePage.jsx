@@ -4,7 +4,7 @@ import Header from '../components/Header.jsx';
 import Controls from '../components/Controls.jsx';
 import Results from '../components/Results.jsx';
 
-// This will read the Environment Variable you set in the Vercel dashboard during the build process.
+// --- THIS IS THE CRITICAL PART THAT WAS LIKELY MISSING ---
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Define our genre lists in one place for easy management
@@ -29,6 +29,7 @@ const genreLists = {
 
 // Define which languages get the full list of genres
 const fullGenreLanguages = ['en', 'hi', 'ko'];
+// --- END OF CRITICAL PART ---
 
 function HomePage() {
   const [language, setLanguage] = useState('en');
@@ -36,13 +37,10 @@ function HomePage() {
   const [genre, setGenre] = useState('28');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  // Determine which list of genres to show based on the selected language
-  const availableGenres = fullGenreLanguages.includes(language)
-    ? genreLists.full
-    : genreLists.limited;
+  const availableGenres = fullGenreLanguages.includes(language) ? genreLists.full : genreLists.limited;
 
-  // This hook ensures the genre is valid when the language (and thus the genre list) changes
   useEffect(() => {
     const isGenreValid = availableGenres.some(g => g.value === genre);
     if (!isGenreValid) {
@@ -52,27 +50,20 @@ function HomePage() {
 
   const handleSuggestClick = async () => {
     setIsLoading(true);
+    setHasSearched(true);
     setResults([]);
     
-    // --- THIS IS THE CORRECT URL FOR PRODUCTION ---
-    // It calls the TMDb API directly from the user's browser.
-    // The Vite proxy is no longer used.
-    // In HomePage.jsx inside handleSuggestClick
-const url = `/api/proxy?with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
-    
-    console.log("Fetching production-ready URL:", url);
+    const url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
 
     try {
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API request failed`);
       const data = await response.json();
       const validResults = data.results.filter(item => item.poster_path);
       setResults(validResults);
     } catch (error) {
-      console.error("Failed to fetch data on production:", error);
-      alert("Failed to fetch suggestions. Please check your console for details.");
+      console.error("Failed to fetch data:", error);
+      alert("Failed to fetch suggestions.");
     }
 
     setIsLoading(false);
@@ -94,7 +85,13 @@ const url = `/api/proxy?with_genres=${genre}&with_original_language=${language}&
       
       <div className="results-section">
         {isLoading && <p style={{textAlign: 'center'}}>Finding suggestions...</p>}
-        {!isLoading && results.length > 0 && <Results items={results} />}
+        
+        {!isLoading && results.length > 0 && <Results items={results} mediaType={mediaType} />}
+        {!isLoading && results.length === 0 && hasSearched && (
+          <p style={{textAlign: 'center', fontSize: '1.2rem', marginTop: '3rem'}}>
+            No results found. Please try a different combination!
+          </p>
+        )}
       </div>
     </div>
   );
