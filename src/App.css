@@ -9,3 +9,11 @@ body {
   background-color: #242424; /* A dark background for the whole page */
   color: white;
 }
+
+/* src/App.css */
+.status-message {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 3rem 0;
+  color: #ccc;
+}

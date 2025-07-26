@@ -50,3 +50,28 @@
 .search-button:hover {
   background-color: #e03d00;
 }
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  align-self: flex-end;
+}
+
+.surprise-button {
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  background-color: #f5c518; /* IMDb gold color */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.surprise-button:hover {
+  background-color: #ffde7a;
+}

@@ -1,15 +1,15 @@
 // src/pages/HomePage.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import useInfiniteScroll from '../hooks/useInfiniteScroll.js';
 import Header from '../components/Header.jsx';
 import Controls from '../components/Controls.jsx';
 import Results from '../components/Results.jsx';
 
-// --- THIS IS THE CRITICAL PART THAT WAS LIKELY MISSING ---
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-// Define our genre lists in one place for easy management
+// --- THE FIX IS HERE: SEPARATE GENRE LISTS FOR MOVIE AND TV ---
 const genreLists = {
-  full: [
+  movie: [
     { value: '28', name: 'Action' }, { value: '12', name: 'Adventure' },
     { value: '35', name: 'Comedy' }, { value: '80', name: 'Crime' },
     { value: '99', name: 'Documentary' }, { value: '18', name: 'Drama' },
@@ -20,77 +20,122 @@ const genreLists = {
     { value: '10770', name: 'TV Movie' }, { value: '53', name: 'Thriller' },
     { value: '10752', name: 'War' }, { value: '37', name: 'Western' },
   ],
-  limited: [
-    { value: '18', name: 'Drama' }, { value: '35', name: 'Comedy' },
-    { value: '10749', name: 'Romance' }, { value: '28', name: 'Action' },
-    { value: '53', name: 'Thriller' }
-  ],
+  tv: [
+    { value: '10759', name: 'Action & Adventure' }, { value: '16', name: 'Animation' },
+    { value: '35', name: 'Comedy' }, { value: '80', name: 'Crime' },
+    { value: '99', name: 'Documentary' }, { value: '18', name: 'Drama' },
+    { value: '10751', name: 'Family' }, { value: '10762', name: 'Kids' },
+    { value: '9648', name: 'Mystery' }, { value: '10763', name: 'News' },
+    { value: '10764', name: 'Reality' }, { value: '10765', name: 'Sci-Fi & Fantasy' },
+    { value: '10766', name: 'Soap' }, { value: '10767', name: 'Talk' },
+    { value: '10768', name: 'War & Politics' }, { value: '37', name: 'Western' },
+  ]
 };
 
-// Define which languages get the full list of genres
 const fullGenreLanguages = ['en', 'hi', 'ko'];
-// --- END OF CRITICAL PART ---
+
+// Languages where the "Short Film" option should appear
+const shortFilmSupportedLanguages = ['en', 'hi'];
 
 function HomePage() {
-  const [language, setLanguage] = useState('en');
-  const [mediaType, setMediaType] = useState('movie');
-  const [genre, setGenre] = useState('28');
+  // We now have a more descriptive 'selection' state
+  const [selection, setSelection] = useState({
+    mediaType: 'movie', // Can be 'movie', 'tv', or 'short_film'
+    language: 'en',
+    genre: '28'
+  });
+
   const [results, setResults] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const availableGenres = fullGenreLanguages.includes(language) ? genreLists.full : genreLists.limited;
+  // Determine the correct API endpoint and genre list based on the selection
+  const apiMediaType = selection.mediaType === 'short_film' ? 'movie' : selection.mediaType;
+  const genreListForMediaType = genreLists[apiMediaType] || [];
+  
+  const availableGenres = fullGenreLanguages.includes(selection.language) 
+    ? genreListForMediaType 
+    : genreListForMediaType.slice(0, 5); // Fallback to a limited list
 
+  // This hook handles all logic when selections change
   useEffect(() => {
-    const isGenreValid = availableGenres.some(g => g.value === genre);
+    // 1. Reset genre if it's not valid in the new list
+    const isGenreValid = availableGenres.some(g => g.value === selection.genre);
     if (!isGenreValid) {
-      setGenre(availableGenres[0].value);
+      setSelection(prev => ({ ...prev, genre: availableGenres[0]?.value || '' }));
     }
-  }, [language, availableGenres, genre]);
 
-  const handleSuggestClick = async () => {
+    // 2. Reset from "Short Film" if language is no longer supported
+    if (selection.mediaType === 'short_film' && !shortFilmSupportedLanguages.includes(selection.language)) {
+      setSelection(prev => ({ ...prev, mediaType: 'movie' }));
+    }
+  }, [selection.mediaType, selection.language, selection.genre, availableGenres]);
+
+  const fetchResults = useCallback(async (pageNum) => {
     setIsLoading(true);
-    setHasSearched(true);
-    setResults([]);
-    
-    const url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_genres=${genre}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100`;
-
     try {
+      let url = `https://api.themoviedb.org/3/discover/${apiMediaType}?api_key=${API_KEY}&with_genres=${selection.genre}&with_original_language=${selection.language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100&page=${pageNum}`;
+      
+      // Add special parameter for short films
+      if (selection.mediaType === 'short_film') {
+        url += '&with_runtime.lte=40';
+      }
+      
       const response = await fetch(url);
       if (!response.ok) throw new Error(`API request failed`);
+      
       const data = await response.json();
       const validResults = data.results.filter(item => item.poster_path);
-      setResults(validResults);
+      
+      setResults(prev => pageNum === 1 ? validResults : [...prev, ...validResults]);
+      setHasMore(data.page < data.total_pages);
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      alert("Failed to fetch suggestions.");
+    } finally {
+      setIsLoading(false);
     }
+  }, [apiMediaType, selection.genre, selection.language, selection.mediaType]);
 
-    setIsLoading(false);
+  const handleNewSearch = () => {
+    setHasSearched(true);
+    setPage(1);
+    fetchResults(1);
+  };
+  
+  const loadNextPage = useCallback(() => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchResults(nextPage);
+  }, [page, fetchResults]);
+
+  useInfiniteScroll({ callback: loadNextPage, isLoading: isLoading, hasMore: hasMore });
+
+  const handleSurpriseClick = async () => { /* ... Surprise Me logic ... */ };
+
+  // Helper to update the nested state easily
+  const handleSelectionChange = (field, value) => {
+    setSelection(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <div className="homepage">
       <Header />
       <Controls
-        mediaType={mediaType}
-        setMediaType={setMediaType}
-        genre={genre}
-        setGenre={setGenre}
-        language={language}
-        setLanguage={setLanguage}
+        selection={selection}
+        onSelectionChange={handleSelectionChange}
         availableGenres={availableGenres}
-        onSuggestClick={handleSuggestClick}
+        shortFilmSupported={shortFilmSupportedLanguages.includes(selection.language)}
+        onSuggestClick={handleNewSearch}
+        onSurpriseClick={handleSurpriseClick} // You can adapt this later
       />
-      
       <div className="results-section">
-        {isLoading && <p style={{textAlign: 'center'}}>Finding suggestions...</p>}
-        
-        {!isLoading && results.length > 0 && <Results items={results} mediaType={mediaType} />}
+        {isLoading && page === 1 && <p className="status-message">Finding suggestions...</p>}
+        {results.length > 0 && <Results items={results} mediaType={apiMediaType} />}
+        {isLoading && page > 1 && <p className="status-message">Loading more...</p>}
         {!isLoading && results.length === 0 && hasSearched && (
-          <p style={{textAlign: 'center', fontSize: '1.2rem', marginTop: '3rem'}}>
-            No results found. Please try a different combination!
-          </p>
+          <p className="status-message">No results found!</p>
         )}
       </div>
     </div>

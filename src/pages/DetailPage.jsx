@@ -1,61 +1,103 @@
 // src/pages/DetailPage.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { motion } from 'framer-motion'; // Import motion
+import TrailerPlayer from '../components/DetailPage/TrailerPlayer.jsx';
+import CastMember from '../components/DetailPage/CastMember.jsx';
+import '../components/DetailPage/DetailPageSections.css';
 import './DetailPage.css';
 
-// We must include the API key here as well, as this page makes its own fetches.
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w1280';
+
+// Define a simple animation variant for items sliding up
+const slideUpVariant = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+};
 
 function DetailPage() {
   const { mediaType, itemId } = useParams();
   const [details, setDetails] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [cast, setCast] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Make sure we clear out old details when navigating between pages
-    setDetails(null); 
-    
-    const fetchDetails = async () => {
-      setIsLoading(true);
+    setIsLoading(true);
+    setDetails(null);
+    setVideos([]);
+    setCast([]);
+
+    const fetchAllDetails = async () => {
       try {
-        // --- THIS IS THE FIX ---
-        // The URL now points directly to the live TMDb API for production.
-        const url = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
+        const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
         
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error("Failed to fetch details");
-        }
-        const data = await response.json();
-        setDetails(data);
+        const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
+          fetch(detailsUrl), fetch(creditsUrl), fetch(videosUrl),
+        ]);
+
+        if (!detailsResponse.ok) throw new Error("Failed to fetch details");
+
+        const detailsData = await detailsResponse.json();
+        const creditsData = await creditsResponse.json();
+        const videosData = await videosResponse.json();
+
+        setDetails(detailsData);
+        setCast(creditsData.cast);
+        setVideos(videosData.results);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
-
-    fetchDetails();
+    fetchAllDetails();
   }, [mediaType, itemId]);
 
-  if (isLoading) {
-    return <p style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '5rem' }}>Loading details...</p>;
-  }
-  
-  if (!details) {
-    return <p style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '5rem' }}>Details not found.</p>;
-  }
+  if (isLoading) return <p className="status-message">Loading details...</p>;
+  if (!details) return <p className="status-message">Details not found.</p>;
+
+  const officialTrailer = videos.find(video => video.site === 'YouTube' && video.type === 'Trailer');
 
   return (
-    <div className="detail-page">
+    <motion.div // Animate the whole page fading in
+      className="detail-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <div className="backdrop-image" style={{ backgroundImage: `url(${IMAGE_BASE_URL}${details.backdrop_path})` }}></div>
       <div className="detail-content">
-        <h1 className="detail-title">{details.title || details.name}</h1>
-        <p className="detail-tagline">{details.tagline}</p>
-        <p className="detail-overview">{details.overview}</p>
-        {/* We will add trailers and cast here in the next part */}
+        <motion.h1 variants={slideUpVariant} initial="hidden" animate="visible" className="detail-title">
+          {details.title || details.name}
+        </motion.h1>
+        
+        <motion.p variants={slideUpVariant} initial="hidden" animate="visible" className="detail-tagline">
+          {details.tagline}
+        </motion.p>
+        
+        <motion.p variants={slideUpVariant} initial="hidden" animate="visible" className="detail-overview">
+          {details.overview}
+        </motion.p>
+        
+        <motion.div variants={slideUpVariant} initial="hidden" animate="visible">
+          <h2 className="section-title">Trailer</h2>
+          <TrailerPlayer videoKey={officialTrailer?.key} />
+        </motion.div>
+        
+        <motion.div variants={slideUpVariant} initial="hidden" animate="visible">
+          <h2 className="section-title">Cast</h2>
+          <div className="cast-grid">
+            {cast.slice(0, 12).map((person) => (
+              <CastMember key={person.id} person={person} />
+            ))}
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

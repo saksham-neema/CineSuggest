@@ -50,3 +50,18 @@
   font-size: 1.1rem;
   line-height: 1.6;
 }
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  border-left: 4px solid #ff4500;
+  padding-left: 0.75rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-message {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-top: 5rem;
+}

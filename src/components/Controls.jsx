@@ -2,11 +2,12 @@
 import './Controls.css';
 
 function Controls({ 
-  mediaType, setMediaType, 
-  genre, setGenre, 
-  language, setLanguage, 
-  availableGenres, // The new prop with the correct genre list
-  onSuggestClick 
+  selection, 
+  onSelectionChange, 
+  availableGenres, 
+  shortFilmSupported,
+  onSuggestClick,
+  onSurpriseClick
 }) {
   return (
     <div className="controls-container">
@@ -14,26 +15,28 @@ function Controls({
       <div className="control-group">
         <label>Content Type:</label>
         <select 
-          value={mediaType} 
-          onChange={(e) => setMediaType(e.target.value)}
+          value={selection.mediaType} 
+          onChange={(e) => onSelectionChange('mediaType', e.target.value)}
         >
           <option value="movie">Movies</option>
           <option value="tv">TV Shows</option>
+          {/* --- The Short Film option only shows up if supported --- */}
+          {shortFilmSupported && (
+            <option value="short_film">Short Films</option>
+          )}
         </select>
       </div>
 
-      {/* Genre Section - Now dynamically rendered */}
+      {/* Genre Section - It's disabled if the media type is short film */}
       <div className="control-group">
         <label>Genre:</label>
         <select 
-          value={genre}
-          onChange={(e) => setGenre(e.target.value)}
+          value={selection.genre}
+          onChange={(e) => onSelectionChange('genre', e.target.value)}
+          disabled={selection.mediaType === 'short_film'}
         >
-          {/* Map over the availableGenres prop to create the options */}
           {availableGenres.map((g) => (
-            <option key={g.value} value={g.value}>
-              {g.name}
-            </option>
+            <option key={g.value} value={g.value}>{g.name}</option>
           ))}
         </select>
       </div>
@@ -42,8 +45,8 @@ function Controls({
       <div className="control-group">
         <label>Language:</label>
         <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
+          value={selection.language}
+          onChange={(e) => onSelectionChange('language', e.target.value)}
         >
           <option value="en">English</option>
           <option value="hi">Hindi</option>
@@ -54,9 +57,14 @@ function Controls({
         </select>
       </div>
       
-      <button className="search-button" onClick={onSuggestClick}>
-        Suggest
-      </button>
+      <div className="button-group">
+        <button className="search-button" onClick={onSuggestClick}>
+          Find
+        </button>
+        <button className="surprise-button" onClick={onSurpriseClick}>
+          Surprise Me ✨
+        </button>
+      </div>
     </div>
   );
 }
