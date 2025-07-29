@@ -1,7 +1,8 @@
-// src/pages/DetailPage.jsx - FINAL PRODUCTION VERSION
+// src/pages/DetailPage.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FaClock, FaTv } from 'react-icons/fa'; // Icons for metadata
 import TrailerPlayer from '../components/DetailPage/TrailerPlayer.jsx';
 import CastMember from '../components/DetailPage/CastMember.jsx';
 import Loader from '../components/Loader.jsx';
@@ -11,6 +12,7 @@ import './DetailPage.css';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w1280';
 
+// Animation variant with a spring transition for a smoother feel
 const sectionVariant = {
   hidden: { y: 20, opacity: 0 },
   visible: { 
@@ -24,6 +26,17 @@ const sectionVariant = {
     }
   }
 };
+
+// Helper function to format minutes into a readable "Xh Ym" format
+function formatRuntime(minutes) {
+  if (!minutes || typeof minutes !== 'number' || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}m`;
+}
 
 function DetailPage() {
   const { mediaType, itemId } = useParams();
@@ -40,6 +53,7 @@ function DetailPage() {
 
     const fetchAllDetails = async () => {
       try {
+        // Using direct production URLs
         const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
         const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
         const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
@@ -58,7 +72,7 @@ function DetailPage() {
         setCast(creditsData.cast);
         setVideos(videosData.results);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching details:", error);
       } finally {
         setIsLoading(false);
       }
@@ -68,9 +82,11 @@ function DetailPage() {
 
   if (isLoading) return <Loader message="Loading details..." />;
   
-  if (!details) return <p className="status-message">Details not found.</p>;
+  if (!details) return <p className="status-message">Details could not be loaded.</p>;
 
   const officialTrailer = videos.find(video => video.site === 'YouTube' && video.type === 'Trailer');
+  const formattedRuntime = formatRuntime(details.runtime);
+  const releaseYear = details.release_date ? details.release_date.substring(0, 4) : (details.first_air_date ? details.first_air_date.substring(0, 4) : null);
 
   return (
     <motion.div 
@@ -83,23 +99,44 @@ function DetailPage() {
       <div className="detail-content">
         <motion.div variants={sectionVariant} initial="hidden" animate="visible">
           <h1 className="detail-title">{details.title || details.name}</h1>
+          
+          <div className="metadata">
+            {releaseYear && (
+              <span className="metadata-item">{releaseYear}</span>
+            )}
+            {mediaType === 'movie' && formattedRuntime && (
+              <span className="metadata-item">
+                <FaClock /> {formattedRuntime}
+              </span>
+            )}
+            {mediaType === 'tv' && details.number_of_seasons && (
+              <span className="metadata-item">
+                <FaTv /> {details.number_of_seasons} Season{details.number_of_seasons > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          
           <p className="detail-tagline">{details.tagline}</p>
           <p className="detail-overview">{details.overview}</p>
         </motion.div>
         
-        <motion.div variants={sectionVariant} initial="hidden" animate="visible">
-          <h2 className="section-title">Trailer</h2>
-          <TrailerPlayer videoKey={officialTrailer?.key} />
-        </motion.div>
+        {officialTrailer && (
+          <motion.div variants={sectionVariant} initial="hidden" animate="visible">
+            <h2 className="section-title">Trailer</h2>
+            <TrailerPlayer videoKey={officialTrailer.key} />
+          </motion.div>
+        )}
         
-        <motion.div variants={sectionVariant} initial="hidden" animate="visible">
-          <h2 className="section-title">Cast</h2>
-          <div className="cast-grid">
-            {cast.slice(0, 12).map((person) => (
-              <CastMember key={person.id} person={person} />
-            ))}
-          </div>
-        </motion.div>
+        {cast && cast.length > 0 && (
+          <motion.div variants={sectionVariant} initial="hidden" animate="visible">
+            <h2 className="section-title">Cast</h2>
+            <div className="cast-grid">
+              {cast.slice(0, 12).map((person) => (
+                <CastMember key={person.cast_id || person.id} person={person} />
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

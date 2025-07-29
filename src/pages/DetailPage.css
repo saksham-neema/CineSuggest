@@ -65,3 +65,22 @@
   font-size: 1.5rem;
   margin-top: 5rem;
 }
+
+/* Add this to the end of src/pages/DetailPage.css */
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
