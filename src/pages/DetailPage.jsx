@@ -1,17 +1,16 @@
-// src/pages/DetailPage.jsx
+// src/pages/DetailPage.jsx - FINAL PRODUCTION VERSION
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TrailerPlayer from '../components/DetailPage/TrailerPlayer.jsx';
 import CastMember from '../components/DetailPage/CastMember.jsx';
-import Loader from '../components/Loader.jsx'; // Import the Loader
+import Loader from '../components/Loader.jsx';
 import '../components/DetailPage/DetailPageSections.css';
 import './DetailPage.css';
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w1280';
 
-// Animation variant with a spring transition
 const sectionVariant = {
   hidden: { y: 20, opacity: 0 },
   visible: { 
@@ -41,9 +40,9 @@ function DetailPage() {
 
     const fetchAllDetails = async () => {
       try {
-        const detailsUrl = `/api/details/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
-        const creditsUrl = `/api/credits/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
-        const videosUrl = `/api/videos/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
+        const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
         
         const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
           fetch(detailsUrl), fetch(creditsUrl), fetch(videosUrl),
@@ -67,7 +66,6 @@ function DetailPage() {
     fetchAllDetails();
   }, [mediaType, itemId]);
 
-  // Use the Loader component while fetching
   if (isLoading) return <Loader message="Loading details..." />;
   
   if (!details) return <p className="status-message">Details not found.</p>;

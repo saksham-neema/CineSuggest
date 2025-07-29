@@ -1,10 +1,10 @@
-// src/pages/HomePage.jsx
+// src/pages/HomePage.jsx - FINAL PRODUCTION VERSION
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import useInfiniteScroll from '../hooks/useInfiniteScroll.js';
 import Header from '../components/Header.jsx';
 import Controls from '../components/Controls.jsx';
 import Results from '../components/Results.jsx';
-import Loader from '../components/Loader.jsx'; // Import the new Loader
+import Loader from '../components/Loader.jsx';
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
@@ -17,22 +17,20 @@ const genreLists = {
     { value: '36', name: 'History' }, { value: '27', name: 'Horror' },
     { value: '10402', name: 'Music' }, { value: '9648', name: 'Mystery' },
     { value: '10749', name: 'Romance' }, { value: '878', name: 'Science Fiction' },
-    { value: '10770', name: 'TV Movie' }, { value: '53', name: 'Thriller' },
-    { value: '10752', name: 'War' }, { value: '37', name: 'Western' },
+    { value: '53', name: 'Thriller' },{ value: '10752', name: 'War' }, { value: '37', name: 'Western' },
   ],
   tv: [
     { value: '10759', name: 'Action & Adventure' }, { value: '16', name: 'Animation' },
     { value: '35', name: 'Comedy' }, { value: '80', name: 'Crime' },
     { value: '99', name: 'Documentary' }, { value: '18', name: 'Drama' },
     { value: '10751', name: 'Family' }, { value: '10762', name: 'Kids' },
-    { value: '9648', name: 'Mystery' }, { value: '10763', name: 'News' },
-    { value: '10764', name: 'Reality' }, { value: '10765', name: 'Sci-Fi & Fantasy' },
-    { value: '10766', name: 'Soap' }, { value: '10767', name: 'Talk' },
+    { value: '9648', name: 'Mystery' }, { value: '10764', name: 'Reality show' }, 
+    { value: '10765', name: 'Sci-Fi & Fantasy' },{ value: '10767', name: 'Talk show' },
     { value: '10768', name: 'War & Politics' }, { value: '37', name: 'Western' },
   ]
 };
 
-const specificGenreLanguages = ['en', 'hi' ,'ko'];
+const specificGenreLanguages = ['en', 'hi', 'ko'];
 
 function HomePage() {
   const [mediaType, setMediaType] = useState('movie');
@@ -45,8 +43,7 @@ function HomePage() {
   const [hasSearched, setHasSearched] = useState(false);
 
   const availableGenres = useMemo(() => {
-    const list = genreLists[mediaType] || [];
-    return list;
+    return genreLists[mediaType] || [];
   }, [mediaType]);
 
   useEffect(() => {
@@ -59,7 +56,7 @@ function HomePage() {
   const fetchResults = useCallback(async (pageNum) => {
     setIsLoading(true);
     try {
-      let url = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&vote_count.gte=300&page=${pageNum}`;
+      let url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&vote_count.gte=150&page=${pageNum}`;
       
       if (specificGenreLanguages.includes(language)) {
         url += `&with_genres=${genre}`;
@@ -103,10 +100,12 @@ function HomePage() {
 
     try {
       const randomPage = Math.floor(Math.random() * 5) + 1;
-      let url = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&page=${randomPage}`;
+      let url = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&page=${randomPage}`;
       
       if (specificGenreLanguages.includes(language)) {
-        url += `&with_genres=${genre}`;
+        url += `&with_genres=${genre}&vote_count.gte=500`;
+      } else {
+        url += `&vote_count.gte=1000`;
       }
       
       const response = await fetch(url);
@@ -116,7 +115,7 @@ function HomePage() {
       let validResults = data.results.filter(item => item.poster_path);
       
       if (validResults.length === 0) {
-        const fallbackUrl = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&page=1`;
+        const fallbackUrl = `https://api.themoviedb.org/3/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&page=1`;
         const fallbackResponse = await fetch(fallbackUrl);
         const fallbackData = await fallbackResponse.json();
         validResults = fallbackData.results.filter(item => item.poster_path);
