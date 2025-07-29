@@ -1,13 +1,13 @@
 // src/pages/HomePage.jsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import useInfiniteScroll from '../hooks/useInfiniteScroll.js';
 import Header from '../components/Header.jsx';
 import Controls from '../components/Controls.jsx';
 import Results from '../components/Results.jsx';
+import Loader from '../components/Loader.jsx'; // Import the new Loader
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-// --- THE FIX IS HERE: SEPARATE GENRE LISTS FOR MOVIE AND TV ---
 const genreLists = {
   movie: [
     { value: '28', name: 'Action' }, { value: '12', name: 'Adventure' },
@@ -32,55 +32,37 @@ const genreLists = {
   ]
 };
 
-const fullGenreLanguages = ['en', 'hi', 'ko'];
-
-// Languages where the "Short Film" option should appear
-const shortFilmSupportedLanguages = ['en', 'hi'];
+const specificGenreLanguages = ['en', 'hi' ,'ko'];
 
 function HomePage() {
-  // We now have a more descriptive 'selection' state
-  const [selection, setSelection] = useState({
-    mediaType: 'movie', // Can be 'movie', 'tv', or 'short_film'
-    language: 'en',
-    genre: '28'
-  });
-
+  const [mediaType, setMediaType] = useState('movie');
+  const [language, setLanguage] = useState('en');
+  const [genre, setGenre] = useState('28');
   const [results, setResults] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Determine the correct API endpoint and genre list based on the selection
-  const apiMediaType = selection.mediaType === 'short_film' ? 'movie' : selection.mediaType;
-  const genreListForMediaType = genreLists[apiMediaType] || [];
-  
-  const availableGenres = fullGenreLanguages.includes(selection.language) 
-    ? genreListForMediaType 
-    : genreListForMediaType.slice(0, 5); // Fallback to a limited list
+  const availableGenres = useMemo(() => {
+    const list = genreLists[mediaType] || [];
+    return list;
+  }, [mediaType]);
 
-  // This hook handles all logic when selections change
   useEffect(() => {
-    // 1. Reset genre if it's not valid in the new list
-    const isGenreValid = availableGenres.some(g => g.value === selection.genre);
-    if (!isGenreValid) {
-      setSelection(prev => ({ ...prev, genre: availableGenres[0]?.value || '' }));
+    const isGenreValid = availableGenres.some(g => g.value === genre);
+    if (!isGenreValid && availableGenres.length > 0) {
+      setGenre(availableGenres[0].value);
     }
-
-    // 2. Reset from "Short Film" if language is no longer supported
-    if (selection.mediaType === 'short_film' && !shortFilmSupportedLanguages.includes(selection.language)) {
-      setSelection(prev => ({ ...prev, mediaType: 'movie' }));
-    }
-  }, [selection.mediaType, selection.language, selection.genre, availableGenres]);
+  }, [availableGenres, genre]);
 
   const fetchResults = useCallback(async (pageNum) => {
     setIsLoading(true);
     try {
-      let url = `https://api.themoviedb.org/3/discover/${apiMediaType}?api_key=${API_KEY}&with_genres=${selection.genre}&with_original_language=${selection.language}&language=en-US&sort_by=popularity.desc&vote_count.gte=100&page=${pageNum}`;
+      let url = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&vote_count.gte=300&page=${pageNum}`;
       
-      // Add special parameter for short films
-      if (selection.mediaType === 'short_film') {
-        url += '&with_runtime.lte=40';
+      if (specificGenreLanguages.includes(language)) {
+        url += `&with_genres=${genre}`;
       }
       
       const response = await fetch(url);
@@ -96,7 +78,7 @@ function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [apiMediaType, selection.genre, selection.language, selection.mediaType]);
+  }, [mediaType, genre, language]);
 
   const handleNewSearch = () => {
     setHasSearched(true);
@@ -105,37 +87,78 @@ function HomePage() {
   };
   
   const loadNextPage = useCallback(() => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchResults(nextPage);
-  }, [page, fetchResults]);
+    if (!isLoading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchResults(nextPage);
+    }
+  }, [page, isLoading, hasMore, fetchResults]);
 
-  useInfiniteScroll({ callback: loadNextPage, isLoading: isLoading, hasMore: hasMore });
+  useInfiniteScroll({ callback: loadNextPage, isLoading, hasMore });
 
-  const handleSurpriseClick = async () => { /* ... Surprise Me logic ... */ };
+  const handleSurpriseClick = async () => {
+    setIsLoading(true);
+    setHasSearched(true);
+    setResults([]);
 
-  // Helper to update the nested state easily
-  const handleSelectionChange = (field, value) => {
-    setSelection(prev => ({ ...prev, [field]: value }));
+    try {
+      const randomPage = Math.floor(Math.random() * 5) + 1;
+      let url = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&page=${randomPage}`;
+      
+      if (specificGenreLanguages.includes(language)) {
+        url += `&with_genres=${genre}`;
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Surprise fetch failed");
+      
+      const data = await response.json();
+      let validResults = data.results.filter(item => item.poster_path);
+      
+      if (validResults.length === 0) {
+        const fallbackUrl = `/api/discover/${mediaType}?api_key=${API_KEY}&with_original_language=${language}&language=en-US&sort_by=popularity.desc&page=1`;
+        const fallbackResponse = await fetch(fallbackUrl);
+        const fallbackData = await fallbackResponse.json();
+        validResults = fallbackData.results.filter(item => item.poster_path);
+      }
+      
+      if (validResults.length > 0) {
+        const randomIndex = Math.floor(Math.random() * validResults.length);
+        setResults([validResults[randomIndex]]);
+      } else {
+        setResults([]);
+      }
+      
+      setHasMore(false);
+    } catch (error) {
+      console.error("Surprise Me feature failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="homepage">
       <Header />
       <Controls
-        selection={selection}
-        onSelectionChange={handleSelectionChange}
+        mediaType={mediaType}
+        setMediaType={setMediaType}
+        genre={genre}
+        setGenre={setGenre}
+        language={language}
+        setLanguage={setLanguage}
         availableGenres={availableGenres}
-        shortFilmSupported={shortFilmSupportedLanguages.includes(selection.language)}
         onSuggestClick={handleNewSearch}
-        onSurpriseClick={handleSurpriseClick} // You can adapt this later
+        onSurpriseClick={handleSurpriseClick}
       />
       <div className="results-section">
-        {isLoading && page === 1 && <p className="status-message">Finding suggestions...</p>}
-        {results.length > 0 && <Results items={results} mediaType={apiMediaType} />}
-        {isLoading && page > 1 && <p className="status-message">Loading more...</p>}
+        {isLoading && results.length === 0 && <Loader message="Finding suggestions..." />}
+        {results.length > 0 && <Results items={results} mediaType={mediaType} />}
+        {isLoading && results.length > 0 && <Loader message="Loading more..." />}
         {!isLoading && results.length === 0 && hasSearched && (
-          <p className="status-message">No results found!</p>
+          <p className="status-message">
+            No results found!
+          </p>
         )}
       </div>
     </div>

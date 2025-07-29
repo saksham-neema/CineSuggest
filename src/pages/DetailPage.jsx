@@ -1,19 +1,29 @@
 // src/pages/DetailPage.jsx
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion'; // Import motion
+import { motion } from 'framer-motion';
 import TrailerPlayer from '../components/DetailPage/TrailerPlayer.jsx';
 import CastMember from '../components/DetailPage/CastMember.jsx';
+import Loader from '../components/Loader.jsx'; // Import the Loader
 import '../components/DetailPage/DetailPageSections.css';
 import './DetailPage.css';
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w1280';
 
-// Define a simple animation variant for items sliding up
-const slideUpVariant = {
+// Animation variant with a spring transition
+const sectionVariant = {
   hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 20,
+      duration: 0.5 
+    }
+  }
 };
 
 function DetailPage() {
@@ -31,9 +41,9 @@ function DetailPage() {
 
     const fetchAllDetails = async () => {
       try {
-        const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
-        const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
-        const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
+        const detailsUrl = `/api/details/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const creditsUrl = `/api/credits/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const videosUrl = `/api/videos/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
         
         const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
           fetch(detailsUrl), fetch(creditsUrl), fetch(videosUrl),
@@ -57,13 +67,15 @@ function DetailPage() {
     fetchAllDetails();
   }, [mediaType, itemId]);
 
-  if (isLoading) return <p className="status-message">Loading details...</p>;
+  // Use the Loader component while fetching
+  if (isLoading) return <Loader message="Loading details..." />;
+  
   if (!details) return <p className="status-message">Details not found.</p>;
 
   const officialTrailer = videos.find(video => video.site === 'YouTube' && video.type === 'Trailer');
 
   return (
-    <motion.div // Animate the whole page fading in
+    <motion.div 
       className="detail-page"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -71,24 +83,18 @@ function DetailPage() {
     >
       <div className="backdrop-image" style={{ backgroundImage: `url(${IMAGE_BASE_URL}${details.backdrop_path})` }}></div>
       <div className="detail-content">
-        <motion.h1 variants={slideUpVariant} initial="hidden" animate="visible" className="detail-title">
-          {details.title || details.name}
-        </motion.h1>
+        <motion.div variants={sectionVariant} initial="hidden" animate="visible">
+          <h1 className="detail-title">{details.title || details.name}</h1>
+          <p className="detail-tagline">{details.tagline}</p>
+          <p className="detail-overview">{details.overview}</p>
+        </motion.div>
         
-        <motion.p variants={slideUpVariant} initial="hidden" animate="visible" className="detail-tagline">
-          {details.tagline}
-        </motion.p>
-        
-        <motion.p variants={slideUpVariant} initial="hidden" animate="visible" className="detail-overview">
-          {details.overview}
-        </motion.p>
-        
-        <motion.div variants={slideUpVariant} initial="hidden" animate="visible">
+        <motion.div variants={sectionVariant} initial="hidden" animate="visible">
           <h2 className="section-title">Trailer</h2>
           <TrailerPlayer videoKey={officialTrailer?.key} />
         </motion.div>
         
-        <motion.div variants={slideUpVariant} initial="hidden" animate="visible">
+        <motion.div variants={sectionVariant} initial="hidden" animate="visible">
           <h2 className="section-title">Cast</h2>
           <div className="cast-grid">
             {cast.slice(0, 12).map((person) => (

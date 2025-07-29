@@ -1,22 +1,18 @@
 // src/components/Results.jsx
-import { motion } from 'framer-motion'; // Import motion
+import { motion } from 'framer-motion';
 import MovieCard from './MovieCard.jsx';
 import './Results.css';
 
-// Define animation "variants" for the container
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1 // This makes each child animate 0.1s after the previous one
-    }
+    transition: { staggerChildren: 0.1 }
   }
 };
 
 function Results({ items, mediaType }) {
   return (
-    // Wrap the grid in a motion.div and apply the variants
     <motion.div 
       className="results-grid"
       variants={containerVariants}

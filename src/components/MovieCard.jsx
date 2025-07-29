@@ -7,8 +7,17 @@ const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // Define animation "variants" for each card
 const cardVariants = {
-  hidden: { y: 20, opacity: 0 }, // Start 20px down and invisible
-  visible: { y: 0, opacity: 1 }   // Animate to original position and fully visible
+  hidden: { y: 25, opacity: 0 },
+  visible: { 
+    y: 0, 
+    opacity: 1,
+    // 2. Add a transition with a spring type
+    transition: {
+      type: "spring",
+      stiffness: 100, // How "stiff" the spring is
+      damping: 15     // How much opposition/drag it has
+    }
+  }
 };
 
 function MovieCard({ item, mediaType }) { 
