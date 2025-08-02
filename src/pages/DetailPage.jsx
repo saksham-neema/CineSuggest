@@ -1,4 +1,4 @@
-// src/pages/DetailPage.jsx - FINAL VERSION FOR VERCEL
+// src/pages/DetailPage.jsx - FINAL DYNAMIC VERSION
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -10,6 +10,7 @@ import '../components/DetailPage/DetailPageSections.css';
 import './DetailPage.css';
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w1280';
 
 const sectionVariant = {
@@ -38,10 +39,9 @@ function DetailPage() {
     setCast([]);
     const fetchAllDetails = async () => {
       try {
-        // --- URLS CHANGED TO PUBLIC API ---
-        const detailsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
-        const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
-        const videosUrl = `https://api.themoviedb.org/3/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
+        const detailsUrl = `${API_BASE_URL}/${mediaType}/${itemId}?api_key=${API_KEY}&language=en-US`;
+        const creditsUrl = `${API_BASE_URL}/${mediaType}/${itemId}/credits?api_key=${API_KEY}&language=en-US`;
+        const videosUrl = `${API_BASE_URL}/${mediaType}/${itemId}/videos?api_key=${API_KEY}&language=en-US`;
         
         const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
           fetch(detailsUrl), fetch(creditsUrl), fetch(videosUrl),

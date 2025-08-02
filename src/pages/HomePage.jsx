@@ -62,6 +62,10 @@ function HomePage() {
       if (specificGenreLanguages.includes(language)) {
         url += `&with_genres=${genre}`;
       }
+
+            // --- THIS IS THE DEBUGGING LINE ---
+      console.log("Attempting to fetch production URL:", url);
+            // ------------------------------------
       
       const response = await fetch(url);
       if (!response.ok) throw new Error(`API request failed`);
