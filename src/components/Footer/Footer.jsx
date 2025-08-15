@@ -7,8 +7,8 @@ import { FaGithub, FaLinkedin } from 'react-icons/fa';
 
 function Footer() {
   // IMPORTANT: Replace these with your actual profile URLs
-  const GITHUB_URL = 'https://github.com/saksham-neema/CineSuggest.git';
-  const LINKEDIN_URL = 'https://www.linkedin.com/in/saksham-neema/';
+  const GITHUB_URL = 'https://github.com/your-username';
+  const LINKEDIN_URL = 'https://linkedin.com/in/your-profile';
 
   return (
     <footer className="footer-container">
@@ -25,7 +25,7 @@ function Footer() {
         />
       </div>
       <p className="creator-credit">
-        - Made by Saksham Neema -
+        Made by Saksham Neema
       </p>
     </footer>
   );

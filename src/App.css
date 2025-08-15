@@ -1,16 +1,26 @@
 /* src/App.css */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #242424; /* A dark background for the whole page */
-  color: white;
+
+/*
+  This targets the `<div id="root">` element and turns it into a flex container.
+  This is the main driver of the layout fix.
+*/
+#root {
+  display: flex;
+  flex-direction: column; /* Stacks children (main content, footer) vertically */
 }
 
-/* src/App.css */
+/*
+  This targets the `<main>` tag inside App.jsx.
+  'flex-grow: 1' is the magic rule. It tells the main content area to "grow"
+  and take up all available empty space, pushing the footer down.
+*/
+main {
+  flex-grow: 1;
+}
+
+/*
+  A general-purpose status message style we use in our pages.
+*/
 .status-message {
   text-align: center;
   font-size: 1.2rem;

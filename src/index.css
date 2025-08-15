@@ -1,0 +1,32 @@
+/* src/index.css */
+
+/*
+  This ensures that padding and borders are included in the element's total width and height,
+  which makes layout calculations much more predictable.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/*
+  These rules are the key to a full-height layout. They create a chain
+  of containers that can fill the entire screen vertically.
+*/
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+  This sets the global theme and font for your entire application.
+*/
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background-color: #242424;
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

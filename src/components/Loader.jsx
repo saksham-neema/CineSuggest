@@ -59,7 +59,8 @@ function Loader({ message }) {
           transition={loaderDotTransition}
         />
       </motion.div>
-      <p className="loader-message">{message}</p>
+      {/* Conditionally render the message only if one is provided */}
+      {message && <p className="loader-message">{message}</p>}
     </div>
   );
 }
